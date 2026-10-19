@@ -1,6 +1,3 @@
-# This workflow will build a .NET project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
-
 name: CICD pipeline -> docker image
 
 on:
@@ -20,7 +17,7 @@ jobs:
     - name: Extract .NET Version
       id: dotnet-version
       run: |
-        VERSION=$(grep -oim 1 '<TargetFramework[^>]*>.*net[0-9.]*' CICD-pipeline---docker-image-practice-.sln -r --include="*.csproj" | grep -oim 1 'net[0-9.]*' | sed 's/net//')
+        VERSION=$(grep -oim 1 '<TargetFramework[^>]*>.*net[0-9.]*' src/CICD-pipeline---docker-image-practice-.sln -r --include="*.csproj" | grep -oim 1 'net[0-9.]*' | sed 's/net//')
         if [ -z "$VERSION" ]; then
           VERSION="10.0"
         fi
@@ -33,14 +30,14 @@ jobs:
         dotnet-version: ${{ steps.dotnet-version.outputs.version }}
 
     - name: Restore dependencies
-      run: dotnet restore CICD-pipeline---docker-image-practice-.sln
+      run: dotnet restore src/CICD-pipeline---docker-image-practice-.sln
     
     - name: Build
-      run: dotnet build CICD-pipeline---docker-image-practice-.sln --no-restore
+      run: dotnet build src/CICD-pipeline---docker-image-practice-.sln --no-restore
     
     # --- Generate package and library version report ---
     - name: Generate Dependency Report
-      run: dotnet list CICD-pipeline---docker-image-practice-.sln package --include-transitive --format json > dependencies.json
+      run: dotnet list src/CICD-pipeline---docker-image-practice-.sln package --include-transitive --format json > dependencies.json
 
     # --- Upload the report as a workflow artifact ---
     - name: Upload Dependency Artifact
