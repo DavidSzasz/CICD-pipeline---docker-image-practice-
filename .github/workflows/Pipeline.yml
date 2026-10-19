@@ -1,0 +1,85 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: CICD pipeline -> docker image
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    # --- Automatically find and set the .NET version from your project file ---
+    - name: Extract .NET Version
+      id: dotnet-version
+      run: |
+        VERSION=$(grep -oim 1 '<TargetFramework[^>]*>.*net[0-9.]*' CICD-pipeline---docker-image-practice-.sln -r --include="*.csproj" | grep -oim 1 'net[0-9.]*' | sed 's/net//')
+        if [ -z "$VERSION" ]; then
+          VERSION="10.0"
+        fi
+        echo "version=$VERSION.x" >> $GITHUB_OUTPUT
+        echo "Detected .NET version: $VERSION.x"
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ steps.dotnet-version.outputs.version }}
+
+    - name: Restore dependencies
+      run: dotnet restore CICD-pipeline---docker-image-practice-.sln
+    
+    - name: Build
+      run: dotnet build CICD-pipeline---docker-image-practice-.sln --no-restore
+    
+    # --- Generate package and library version report ---
+    - name: Generate Dependency Report
+      run: dotnet list CICD-pipeline---docker-image-practice-.sln package --include-transitive --format json > dependencies.json
+
+    # --- Upload the report as a workflow artifact ---
+    - name: Upload Dependency Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: CICD-pipeline---docker-image-practice-dependencies
+        path: dependencies.json
+
+  Delivery:
+    needs:
+      build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v4
+
+    # --- Download the dependency report so Docker can include it ---
+    - name: Download Dependency Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: CICD-pipeline---docker-image-practice-dependencies
+        path: .
+
+    # --- Log in to GitHub Container Registry ---
+    - name: Log in to the Container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    # --- Build and name your Docker image ---
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}:latest
+          ghcr.io/${{ github.repository }}:${{ github.sha }}
