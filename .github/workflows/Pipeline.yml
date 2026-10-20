@@ -82,6 +82,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
+        file: src/Presantation/Dockerfile
         push: true
         tags: |
           ${{ steps.repo_name.outputs.IMAGE_NAME }}:latest
