@@ -1,11 +1,11 @@
-﻿using System;
-using System.IO;
-using Domain.Interface;
+﻿using Domain.Interface;
 using Infrastructure.Data;
 using Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.IO;
 
 namespace Infrastructure
 {
@@ -38,7 +38,7 @@ namespace Infrastructure
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
-            services.AddScoped(typeof(IUserRepository<>), typeof(UserRepository<>));
+            services.AddScoped(typeof(IUserRepository), typeof(UserRepository));
 
             return services;
         }

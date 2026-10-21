@@ -1,23 +1,24 @@
-﻿using System;
+﻿using Domain.Model;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Domain.Interface
 {
-    public interface IUserRepository<T> where T : class
+    public interface IUserRepository
     {
-        Task<IEnumerable<T>> GetAllAsync();
+        Task<IEnumerable<User>> GetAllAsync();
 
-        Task<T?> GetByIdAsync(int id);
+        Task<User?> GetByIdAsync(int id);
 
-        IQueryable<T> GetQueryable();
+        Task<User?> GetByUsernameOrEmailAsync(string username, string email);
 
-        Task<T> AddAsync(T entity);
+        IQueryable<User> GetQueryable();
 
-        Task<T> UpdateAsync(T entity);
+        Task<User> AddAsync(User entity);
 
-        Task<T> DeleteAsync(int id);
+        Task<User> UpdateAsync(User entity);
+
+        Task<User> DeleteAsync(int id);
     }
 }

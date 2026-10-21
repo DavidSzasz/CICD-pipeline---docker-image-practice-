@@ -1,54 +1,66 @@
 ﻿using Domain.Interface;
+using Domain.Model;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Superpower.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Infrastructure.Repository
 {
-    public class UserRepository<T> : IUserRepository<T> where T : class
+    public class UserRepository : IUserRepository
     {
         private readonly AppDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        private readonly DbSet<User> _dbSet;
 
         public UserRepository(AppDbContext context)
         {
             _context = context;
-            _dbSet = _context.Set<T>();
+            _dbSet = _context.Set<User>();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
+        public async Task<IEnumerable<User>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<T?> GetByIdAsync(int id)
+        public async Task<User?> GetByIdAsync(int id)
         {
             return await _dbSet.FindAsync(id);
         }
 
-        public IQueryable<T> GetQueryable()
+        public async Task<User?> GetByUsernameOrEmailAsync(string username, string email)
+        {
+            if (string.IsNullOrEmpty(username) && string.IsNullOrEmpty(email))
+                return null;
+
+            var user = await _dbSet.FirstOrDefaultAsync(e =>
+                e.Username == username || e.Email == email);
+
+            return user;
+        }
+
+        public IQueryable<User> GetQueryable()
         {
             return _dbSet.AsQueryable();
         }
 
-        public async Task<T> AddAsync(T entity)
+        public async Task<User> AddAsync(User entity)
         {
             await _dbSet.AddAsync(entity);
             await _context.SaveChangesAsync();
             return entity;
         }
 
-        public async Task<T> UpdateAsync(T entity)
+        public async Task<User> UpdateAsync(User entity)
         {
             _dbSet.Update(entity);
             await _context.SaveChangesAsync();
             return entity;
         }
 
-        public async Task<T> DeleteAsync(int id)
+        public async Task<User> DeleteAsync(int id)
         {
             var entity = await _dbSet.FindAsync(id);
             if (entity == null)

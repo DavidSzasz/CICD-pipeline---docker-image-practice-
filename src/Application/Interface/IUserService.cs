@@ -2,15 +2,17 @@
 using System.Threading.Tasks;
 using Application.Dto;
 using Application.Dto.request;
+using Application.Dto.response;
 
 namespace Application.Interface
 {
-    public interface IUserService<T> where T : class
+    public interface IUserService
     {
-        Task<IEnumerable<UserDto>> GetAllUsersAsync();
-        Task<UserDto?> GetUserByIdAsync(int id);
-        Task<UserDto> CreateUserAsync(CreateUserRequestDto requestDto);
-        Task UpdateUserAsync(int id, UpdateUserRequestDto requestDto);
-        Task DeleteUserAsync(int id);
+        Task<IEnumerable<GetUserResponseDto?>> GetAllUsersAsync();
+        Task<GetUserResponseDto?> GetUserByIdAsync(int id);
+        Task<CreateUserResponseDto?> CreateUserAsync(CreateUserRequestDto requestDto);
+        Task<bool> UpdateUserAsync(int id, UpdateUserRequestDto requestDto);
+        Task<bool> DeleteUserAsync(int id);
+        Task<LoginUserResponseDto?> LoginAsync(string username, string email, string password);
     }
 }
